@@ -1,0 +1,157 @@
+# yaml-language-server: $schema=https://schema.zeabur.app/template.json
+apiVersion: zeabur.com/v1
+kind: Template
+metadata:
+  name: Kong Gateway OSS (DB-less Mode)
+spec:
+  description: A lightweight, high-performance API Gateway running in DB-less mode with declarative configuration
+  icon: https://docs.konghq.com/assets/images/favicon.ico
+  coverImage: https://camo.githubusercontent.com/733593a5edce1e6474a3a82297582a813bbee7ba2edee6db8b35aa8c744a1e83/68747470733a2f2f6b6f6e6768712e636f6d2f77702d636f6e74656e742f75706c6f6164732f323031382f30352f6b6f6e672d6c6f676f2d6769746875622d726561646d652e706e67
+  tags:
+    - API Gateway
+    - DB-less
+    - Reverse Proxy
+    - Microservices
+    - Cloud Native
+  variables:
+    - key: KONG_PUBLIC_DOMAIN
+      type: DOMAIN
+      name: Kong Proxy Domain
+      description: The domain to bind to Kong Proxy (port 8000)
+  readme: |-
+    # Kong Gateway OSS (DB-less Mode)
+    
+    Kong Gateway is a lightweight, high-performance API Gateway that can be deployed without a database. 
+    This template uses declarative configuration for all routes, services, and plugins.
+    
+    ## Features
+    - 🚀 **One-Click Deployment** on Zeabur
+    - 🔄 **Stateless Mode** with declarative configuration
+    - 🔌 **Pre-configured** with a sample httpbin service
+    - 🌐 **Custom Domain** support
+    - 📊 **Kong Manager** included
+    
+    ## Documentation
+    - [Kong DB-less Mode](https://docs.konghq.com/gateway/latest/production/deployment-topologies/db-less-and-declarative-config/)
+    - [Declarative Configuration](https://docs.konghq.com/gateway/latest/reference/configuration/)
+  services:
+    - name: Kong Gateway
+      icon: https://docs.konghq.com/assets/images/favicon.ico
+      template: PREBUILT
+      domainKey: KONG_PUBLIC_DOMAIN
+      spec:
+        source:
+          image: kong/kong-gateway:3.10.0.1
+        ports:
+          - id: proxy
+            port: 8000
+            type: HTTP
+          - id: manager
+            port: 8002
+            type: HTTP
+          - id: admin
+            port: 8001
+            type: HTTP
+        env:
+          # DB-less mode configuration
+          KONG_DATABASE: 
+            default: "off"
+          KONG_DECLARATIVE_CONFIG: 
+            default: "/kong/declarative/kong.yml"
+          KONG_NGINX_WORKER_PROCESSES: 
+            default: "1"
+          
+          # Admin API configuration
+          KONG_ADMIN_LISTEN: 
+            default: "0.0.0.0:8001"
+          KONG_ADMIN_ACCESS_LOG: 
+            default: /dev/stdout
+          KONG_ADMIN_ERROR_LOG: 
+            default: /dev/stderr
+          
+          # Proxy configuration
+          KONG_PROXY_ACCESS_LOG: 
+            default: /dev/stdout
+          KONG_PROXY_ERROR_LOG: 
+            default: /dev/stderr
+          
+          # Security headers
+          KONG_HEADERS: 
+            default: "off"
+          KONG_HEADERS_ACCESS_CONTROL_ALLOW_ORIGIN: 
+            default: "*"
+          
+          # Performance tuning for DB-less
+          KONG_LUA_PACKAGE_PATH: 
+            default: "/opt/kong/?.lua;/opt/kong/?/init.lua;"
+          
+          # Health check endpoint
+          KONG_STATUS_LISTEN: 
+            default: "0.0.0.0:8100"
+          
+        healthcheck:
+          test: ["CMD", "kong", "health"]
+          interval: 30s
+          timeout: 10s
+          retries: 3
+          start_period: 30s
+          
+        volumes:
+          - id: config
+            dir: /kong/declarative
+            
+        configs:
+          - path: /kong/declarative/kong.yml
+            template: |-
+              _format_version: "3.0"
+              _transform: true
+              
+              # Example API service
+              services:
+                - name: status
+                  url: http://localhost:8100/status
+                  routes:
+                    - name: status-route
+                      paths: [ "/status" ]
+                      strip_path: false
+
+                - name: httpbin
+                  url: https://httpbin.org
+                  routes:
+                    - name: httpbin-route
+                      paths: [ "/httpbin" ]
+                      strip_path: true
+                      methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
+                      preserve_host: false
+                      protocols: ["http", "https"]
+              
+            envsubst: true
+
+localization:
+  "zh-TW":
+    description: 輕量級、高效能的 API 閘道，採用無資料庫模式運行，使用宣告式配置
+    variables:
+      - key: KONG_PUBLIC_DOMAIN
+        name: Kong Proxy 網域
+        description: 請輸入你要綁定到 Kong Proxy (8000) 的網域
+        type: DOMAIN
+    readme: |-
+      # Kong Gateway OSS (無資料庫模式)
+      
+      Kong Gateway 是一個輕量級、高效能的 API 閘道，可以在無資料庫模式下運行。
+      此模板使用宣告式配置來管理所有路由、服務和外掛。
+      
+      ## 功能特點
+      - 🚀 **一鍵部署** 在 Zeabur 上
+      - 🔄 **無狀態模式** 使用宣告式配置
+      - 🔌 **預先配置** 包含 httpbin 範例服務
+      - 🌐 **自訂網域** 支援
+      - 📊 **Kong Manager** 管理介面
+    
+      ## 建議搭配使用
+      - Cloudflare Access 作為登入保護層
+      - 配置 Admin API 僅內部使用（未開放 `8001`）
+    
+      ## 文件
+      - [Kong 無資料庫模式](https://docs.konghq.com/gateway/latest/production/deployment-topologies/db-less-and-declarative-config/)
+      - [宣告式配置](https://docs.konghq.com/gateway/latest/reference/configuration/)
