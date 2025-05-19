@@ -52,6 +52,9 @@ spec:
           - id: admin
             port: 8001
             type: HTTP
+          - id: status
+            port: 8100
+            type: HTTP
         env:
           # DB-less mode configuration
           KONG_DATABASE: 
@@ -113,7 +116,7 @@ spec:
                   routes:
                     - name: status-route
                       paths: [ "/status" ]
-                      strip_path: false
+                      strip_path: true
 
                 - name: httpbin
                   url: https://httpbin.org
