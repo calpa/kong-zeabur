@@ -7,12 +7,7 @@
 ![Kong Version](https://img.shields.io/badge/Kong-3.10.0.1-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-[✨ Features](#-features) ·
-[🚀 Deployment](#-deployment) ·
-[⚙️ Configuration](#-configuration) ·
-[💡 Usage](#-usage) ·
-[🔧 Development](#-development) ·
-[🔒 Security](#-security)
+[繁體中文 README](README.zh-TW.md)
 
 </div>
 
